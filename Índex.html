@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>🎰 Crazy Time – App de Sinais</title>
+    <style>
+        :root {
+            --bg: #0f1a0f;
+            --card: #172217;
+            --border: #2a3d2a;
+            --gold: #ffd700;
+            --green: #00ff88;
+            --red: #ff4757;
+            --blue: #4488ff;
+            --purple: #bb44ff;
+            --text: #e8d8b8;
+            --text2: #7a907a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0a0f0a;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .header {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 20px;
+            text-align: center;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+        }
+        .header h1 {
+            font-size: 1.5em;
+            color: var(--gold);
+        }
+        .status {
+            font-size: 11px;
+            color: var(--green);
+            margin-top: 4px;
+        }
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            display: inline-block;
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .sinal-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .sinal-card.ativo {
+            border-color: var(--gold);
+            box-shadow: 0 0 30px rgba(255,215,0,0.3);
+            animation: glowPulse 2s infinite;
+        }
+        .sinal-card.win {
+            border-color: var(--green);
+            box-shadow: 0 0 30px rgba(0,255,136,0.3);
+        }
+        .sinal-card.loss {
+            border-color: var(--red);
+            box-shadow: 0 0 30px rgba(255,71,87,0.3);
+        }
+        @keyframes glowPulse {
+            0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+            50% { box-shadow: 0 0 40px rgba(255,215,0,0.5); }
+        }
+
+        .sinal-titulo {
+            font-size: 1.1em;
+            color: var(--text2);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .sinal-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .sinal-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--gold);
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(255,215,0,0.4);
+        }
+        .sinal-logo.numero {
+            border-radius: 12px;
+            border-color: var(--blue);
+            box-shadow: 0 0 20px rgba(68,136,255,0.4);
+        }
+        .sinal-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .sinal-logo.numero img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+        .sinal-nome {
+            font-size: 1.8em;
+            font-weight: 900;
+            color: var(--gold);
+        }
+        .sinal-confianca {
+            font-size: 0.9em;
+            color: var(--text2);
+        }
+        .confianca-barra {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        .confianca-preenchimento {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s;
+            background: linear-gradient(90deg, var(--green), var(--gold));
+        }
+        .sinal-estrategia {
+            font-size: 0.8em;
+            color: var(--text2);
+            margin-top: 5px;
+        }
+        .sinal-status {
+            font-size: 0.9em;
+            font-weight: 700;
+            margin-top: 8px;
+            padding: 4px 15px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .status-ag { background: rgba(255,215,0,0.2); color: var(--gold); }
+        .status-win { background: rgba(0,255,136,0.2); color: var(--green); }
+        .status-loss { background: rgba(255,71,87,0.2); color: var(--red); }
+
+        .audio-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-audio {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-ouvir { background: var(--green); color: #000; }
+        .btn-ouvir.mutado { background: var(--red); color: #fff; }
+        .btn-teste { background: rgba(255,255,255,0.1); color: var(--text); }
+        .volume-slider { width: 70px; accent-color: var(--gold); }
+        .volume-label { font-size: 0.8em; color: var(--text2); min-width: 35px; }
+
+        .placar-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+        .placar-titulo { font-size: 1em; color: var(--gold); margin-bottom: 12px; }
+        .placar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .placar-item {
+            text-align: center;
+            padding: 12px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        .placar-item.win { background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); color: var(--green); }
+        .placar-item.loss { background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.3); color: var(--red); }
+        .placar-item.taxa { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); color: var(--gold); }
+        .placar-numero { font-size: 2em; line-height: 1; }
+        .placar-label { font-size: 0.65em; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+        .historico-sinais-card {
+            background: var(--card);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .historico-sinais-titulo {
+            font-size: 1em;
+            color: var(--gold);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .historico-sinais-lista { display: flex; flex-direction: column; gap: 6px; }
+        .historico-sinal-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid var(--border);
+            font-size: 0.85em;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .historico-sinal-item.win { border-left-color: var(--green); }
+        .historico-sinal-item.loss { border-left-color: var(--red); }
+        .historico-sinal-item.pendente { border-left-color: var(--gold); }
+        .hs-sinal { display: flex; align-items: center; gap: 8px; }
+        .hs-mini-logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #0a0a0a;
+            border: 1px solid var(--gold);
+        }
+        .hs-mini-logo img { width: 100%; height: 100%; object-fit: cover; }
+        .hs-mini-logo.numero {
+            border-radius: 6px;
+            border-color: var(--blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hs-resultado { padding: 3px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8em; }
+        .hs-win { background: rgba(0,255,136,0.2); color: var(--green); }
+        .hs-loss { background: rgba(255,71,87,0.2); color: var(--red); }
+        .hs-pendente { background: rgba(255,215,0,0.2); color: var(--gold); }
+        .hs-hora { font-size: 0.7em; color: var(--text2); }
+
+        .historico-container {
+            background: #172217;
+            border: 1.5px solid #2a3d2a;
+            border-radius: 16px;
+            padding: 20px 14px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+        }
+        .titulo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #e8d8b8;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-atualizacao {
+            font-size: 10px;
+            color: #4cff4c;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .bolinha {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #4cff4c;
+            animation: piscar 1.2s infinite;
+        }
+        @keyframes piscar {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .subtitulo {
+            font-size: 12px;
+            color: #7a907a;
+            margin-bottom: 18px;
+        }
+        .grade {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            min-height: 200px;
+        }
+        .celula {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1/1;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        .celula:hover { transform: scale(1.15); z-index: 10; }
+        .celula.nova { animation: aparecer 0.6s ease-out; }
+        @keyframes aparecer {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .escudo-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .escudo-wrapper svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .escudo-wrapper img {
+            position: relative;
+            z-index: 2;
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 3px black);
+        }
+        .bonus-wrapper {
+            width: 88%;
+            aspect-ratio: 1/1;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2.5px solid #e2b33c;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(226,179,60,0.5);
+        }
+        .bonus-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .multiplicador-tag {
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, #ffe44d 0%, #f5c842 100%);
+            color: #1a1400;
+            font-size: clamp(6px, 1.8vw, 9px);
+            font-weight: 900;
+            padding: 1.5px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+            z-index: 10;
+            border: 1px solid #9a8000;
+            line-height: 1.4;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        }
+        .grade .celula:first-child .escudo-wrapper svg path {
+            stroke: #ffcc44 !important;
+            stroke-width: 2.5px !important;
+            animation: destaquePulso 2s infinite;
+        }
+        .grade .celula:first-child .bonus-wrapper {
+            border-color: #ffcc44 !important;
+            box-shadow: 0 0 15px rgba(255,204,68,0.7) !important;
+            animation: destaquePulso 2s infinite;
+        }
+        @keyframes destaquePulso {
+            0%,100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+        @media (max-width: 420px) {
+            .grade { grid-template-columns: repeat(6, 1fr); gap: 3px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎰 Crazy Time Sinais</h1>
+        <div class="status"><span class="live-dot"></span> Monitorando · <span id="ultimaAtualizacao">--:--:--</span></div>
+    </div>
+
+    <div class="sinal-card" id="sinalCard">
+        <div class="sinal-titulo">🎯 SINAL ATUAL</div>
+        <div class="sinal-box" id="sinalBox">
+            <div style="color:var(--text2);padding:20px;">Aguardando análise...</div>
+        </div>
+        <div class="confianca-barra" style="margin-top:12px;">
+            <div class="confianca-preenchimento" id="confiancaBarra" style="width:0%;"></div>
+        </div>
+        <div class="sinal-estrategia" id="sinalEstrategia"></div>
+        <div class="sinal-status status-ag" id="sinalStatus">AGUARDANDO</div>
+    </div>
+
+    <div class="audio-card">
+        <button class="btn-audio btn-ouvir" id="btnOuvir" onclick="toggleAudio()">🔊 Ouvir Sinais</button>
+        <button class="btn-audio btn-teste" onclick="testarSom()">🔔 Testar</button>
+        <span style="font-size:0.8em;color:var(--text2);">Vol:</span>
+        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50" onchange="ajustarVolume()">
+        <span class="volume-label" id="volumeLabel">50%</span>
+    </div>
+
+    <div class="placar-card">
+        <div class="placar-titulo">📊 PLACAR DE SINAIS</div>
+        <div class="placar-grid">
+            <div class="placar-item win"><div class="placar-numero" id="placarWin">0</div><div class="placar-label">✅ Win</div></div>
+            <div class="placar-item loss"><div class="placar-numero" id="placarLoss">0</div><div class="placar-label">❌ Loss</div></div>
+            <div class="placar-item taxa"><div class="placar-numero" id="placarTaxa">0%</div><div class="placar-label">Acertos</div></div>
+        </div>
+    </div>
+
+    <div class="historico-sinais-card" id="historicoSinaisCard">
+        <div class="historico-sinais-titulo">📋 Histórico de Sinais <span style="font-size:0.7em;color:var(--text2);" id="contadorSinais">0 sinais</span></div>
+        <div class="historico-sinais-lista" id="historicoSinaisLista">
+            <div style="text-align:center;color:var(--text2);padding:20px;">Nenhum sinal ainda</div>
+        </div>
+    </div>
+
+    <div class="historico-container">
+        <div class="titulo">📊 Histórico das rodadas <span class="status-atualizacao"><span class="bolinha"></span> AO VIVO</span></div>
+        <div class="subtitulo">Últimas <span id="contadorRodadas">0</span> rodadas</div>
+        <div class="grade" id="grade"><div style="grid-column:1/-1;text-align:center;color:#7a907a;padding:40px;">⏳ Carregando...</div></div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "https://cassinostats.com/startbet/api/history-proxy.php?duration=6&page=0&size=100&sort=data.settledAt,desc&wheelResults=Pachinko,CashHunt,CrazyBonus,CoinFlip,1,2,5,10&isTopSlotMatched=true,false&tableId=CrazyTime0000001&_retry=0";
+    const BASE = "https://gamblingcounting.fra1.cdn.digitaloceanspaces.com/assets/crazy-time/";
+    const IMAGENS = {
+        "1": BASE+"number-1.svg","2": BASE+"number-2.svg","5": BASE+"number-5.svg","10": BASE+"number-10.svg",
+        "CashHunt": BASE+"cash-hunt.svg","CoinFlip": BASE+"coin-flip.svg","Pachinko": BASE+"pachinko.svg","CrazyBonus": BASE+"cash-hunt.svg"
+    };
+    const CORES_ESCUDO = {"1":"#2d4545","2":"#3b3218","5":"#3a1e2e","10":"#262244"};
+    const BONUS = ["Pachinko","CashHunt","CrazyBonus","CoinFlip"];
+    const NUMEROS = ["1","2","5","10"];
+    const TODOS = [...NUMEROS, ...BONUS];
+
+    let estado = {
+        audioAtivo: false, volume: 50, audioCtx: null,
+        idsExibidos: new Set(), primeiraCarga: true,
+        ultimoGiroId: null, sinalAtual: null, giroAnterior: null,
+        historicoSinais: [], placar: { win:0, loss:0 }
+    };
+
+    function initAudio() {
+        if (!estado.audioCtx) estado.audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    }
+    function tocarTom(f,d,t='sine') {
+        if(!estado.audioAtivo) return;
+        initAudio();
+        const ctx=estado.audioCtx, g=estado.volume/100;
+        const o=ctx.createOscillator(), gn=ctx.createGain();
+        o.type=t; o.frequency.setValueAtTime(f,ctx.currentTime);
+        gn.gain.setValueAtTime(g*0.25,ctx.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+d);
+        o.connect(gn); gn.connect(ctx.destination);
+        o.start(); o.stop(ctx.currentTime+d);
+    }
+    function tocarSinalCompra(){[400,500,600,800].forEach((f,i)=>setTimeout(()=>tocarTom(f,0.15),i*100));}
+    function tocarSinalVenda(){[600,500,400,300].forEach((f,i)=>setTimeout(()=>tocarTom(f,0.2,'triangle'),i*150));}
+    function tocarWin(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tocarTom(f,0.2),i*120));}
+    function tocarLoss(){tocarTom(200,0.4,'triangle');setTimeout(()=>tocarTom(150,0.3,'triangle'),300);}
+    function testarSom(){
+        const prev=estado.audioAtivo; estado.audioAtivo=true; initAudio();
+        tocarTom(440,0.2); setTimeout(()=>tocarTom(660,0.2),200);
+        setTimeout(()=>tocarTom(880,0.3),400);
+        if(!prev) setTimeout(()=>{estado.audioAtivo=prev;},1000);
+    }
+    function toggleAudio(){
+        estado.audioAtivo=!estado.audioAtivo;
+        const b=document.getElementById('btnOuvir');
+        if(estado.audioAtivo){ b.textContent='🔊 Ouvindo Sinais'; b.classList.remove('mutado'); initAudio(); }
+        else { b.textContent='🔇 Silenciado'; b.classList.add('mutado'); }
+    }
+    function ajustarVolume(){
+        estado.volume=parseInt(document.getElementById('volumeSlider').value);
+        document.getElementById('volumeLabel').textContent=estado.volume+'%';
+    }
+
+    function analisarGiros(giros) {
+        if(!giros||giros.length<5) return null;
+        const ultimos=giros.slice(0,20);
+        const ultimo=ultimos[0];
+        const penultimo=ultimos[1];
+        let pontuacao={}; TODOS.forEach(s=>pontuacao[s]=0);
+        let estrategias=[];
+
+        // Contagem de atrasos
+        const ultimoIndice={}; TODOS.forEach(s=>{ const idx=ultimos.findIndex(g=>g.numero===s); ultimoIndice[s]=idx===-1?20:idx; });
+
+        // Estratégias para NÚMERO 1
+        if(ultimo.numero==='10') { pontuacao['1']+=15; estrategias.push('🔄 10→1 provável'); }
+        const bonusRecentes=ultimos.filter(g=>BONUS.includes(g.numero)).length;
+        if(bonusRecentes>=3) { pontuacao['1']+=10; estrategias.push('🎁 Muitos bônus → 1'); }
+
+        // NÚMERO 2
+        if(ultimo.numero==='1' && penultimo?.numero==='1') { pontuacao['2']+=20; estrategias.push('1️⃣ 1→1→2 provável'); }
+        if(ultimo.numero==='5') { pontuacao['2']+=15; estrategias.push('🔁 5→2 recuo'); }
+        if(ultimoIndice['2']>=6) { pontuacao['2']+=10; estrategias.push('② Atrasado'); }
+
+        // NÚMERO 5
+        const baixosSeg=ultimos.filter(g=>g.numero==='1'||g.numero==='2').length;
+        if(baixosSeg>=4) { pontuacao['5']+=25; estrategias.push('🔥 Muitos baixos → 5'); }
+        if(ultimo.numero==='CoinFlip') { pontuacao['5']+=15; estrategias.push('🪙 CoinFlip→5'); }
+        if(ultimoIndice['5']>=7) { pontuacao['5']+=15; estrategias.push('⑤ Atrasado'); }
+
+        // NÚMERO 10
+        if(ultimoIndice['10']>=8) { pontuacao['10']+=30; estrategias.push('🔟 10 muito atrasado'); }
+        if(ultimo.numero==='Pachinko') { pontuacao['10']+=20; estrategias.push('🎰 Pachinko→10'); }
+        if(penultimo?.numero==='10' && ultimo.numero==='1') { pontuacao['10']+=15; estrategias.push('🔁 10→1→10'); }
+
+        // PACHINKO
+        if(ultimoIndice['Pachinko']>=10) { pontuacao['Pachinko']+=20; estrategias.push('🎰 Pachinko atrasado'); }
+        if(ultimo.numero==='CoinFlip') { pontuacao['Pachinko']+=15; estrategias.push('🪙 CoinFlip→Pachinko'); }
+        const pachTop=ultimos.filter(g=>g.topSlot==='Pachinko').length;
+        if(pachTop>=2) { pontuacao['Pachinko']+=18; estrategias.push('🎯 Top Slot Pachinko'); }
+
+        // CASHHUNT
+        if(ultimoIndice['CashHunt']>=15) { pontuacao['CashHunt']+=25; estrategias.push('🎯 CashHunt muito atrasado'); }
+        const chRecentes=ultimos.filter(g=>g.numero==='CashHunt');
+        if(chRecentes.length>0 && Math.max(...chRecentes.map(g=>g.multiplicador||0))<50) {
+            pontuacao['CashHunt']+=15; estrategias.push('📉 CashHunt baixo → próximo alto');
+        }
+        if(ultimo.numero==='1') { pontuacao['CashHunt']+=10; estrategias.push('1️⃣ 1→CashHunt'); }
+
+        // CRAZYBONUS
+        if(ultimoIndice['CrazyBonus']>=12) { pontuacao['CrazyBonus']+=20; estrategias.push('🎪 CrazyBonus atrasado'); }
+        if(ultimo.numero==='2') { pontuacao['CrazyBonus']+=12; estrategias.push('2️⃣ 2→CrazyBonus'); }
+
+        // COINFLIP
+        if(ultimoIndice['CoinFlip']>=18) { pontuacao['CoinFlip']+=25; estrategias.push('🪙 CoinFlip muito atrasado'); }
+        if(ultimo.numero==='5'||ultimo.numero==='10') { pontuacao['CoinFlip']+=12; estrategias.push('🔢 Alto→CoinFlip'); }
+
+        let melhorSetor=null, melhorPont=0;
+        TODOS.forEach(s=>{ if(pontuacao[s]>melhorPont){ melhorPont=pontuacao[s]; melhorSetor=s; } });
+        if(!melhorSetor||melhorPont<15) return null;
+
+        return {
+            setor: melhorSetor,
+            confianca: Math.min(50+melhorPont,95),
+            estrategia: estrategias.join(' | '),
+            isBonus: BONUS.includes(melhorSetor)
+        };
+    }
+
+    function verificarResultado(sinal, resultadoReal) {
+        if(!sinal||!resultadoReal) return 'pendente';
+        return sinal.setor===resultadoReal.numero?'win':'loss';
+    }
+
+    function renderizarSinal(sinal) {
+        const card=document.getElementById('sinalCard');
+        const box=document.getElementById('sinalBox');
+        document.getElementById('confiancaBarra').style.width=sinal.confianca+'%';
+        document.getElementById('sinalEstrategia').textContent='📊 '+sinal.estrategia;
+        document.getElementById('sinalStatus').textContent='AGUARDANDO RESULTADO';
+        document.getElementById('sinalStatus').className='sinal-status status-ag';
+        card.className='sinal-card ativo';
+        const imgSrc=IMAGENS[sinal.setor]||IMAGENS['1'];
+        const isBonus=BONUS.includes(sinal.setor);
+        box.innerHTML=`
+            <div class="sinal-logo ${isBonus?'':'numero'}">
+                <img src="${imgSrc}" alt="${sinal.setor}">
+            </div>
+            <div class="sinal-info">
+                <div class="sinal-nome">${sinal.setor}</div>
+                <div class="sinal-confianca">Confiança: ${sinal.confianca}%</div>
+            </div>`;
+        if(estado.audioAtivo) {
+            if(isBonus||['5','10'].includes(sinal.setor)) tocarSinalCompra(); else tocarSinalVenda();
+        }
+    }
+
+    function atualizarPlacar() {
+        document.getElementById('placarWin').textContent=estado.placar.win;
+        document.getElementById('placarLoss').textContent=estado.placar.loss;
+        const total=estado.placar.win+estado.placar.loss;
+        document.getElementById('placarTaxa').textContent=(total>0?((estado.placar.win/total)*100).toFixed(1):0)+'%';
+    }
+
+    function atualizarHistoricoSinais() {
+        const container=document.getElementById('historicoSinaisLista');
+        document.getElementById('contadorSinais').textContent=estado.historicoSinais.length+' sinais';
+        if(!estado.historicoSinais.length) {
+            container.innerHTML='<div style="text-align:center;color:var(--text2);padding:20px;">Nenhum sinal ainda</div>';
+            return;
+        }
+        const recentes=[...estado.historicoSinais].reverse().slice(0,30);
+        container.innerHTML=recentes.map(item=>{
+            const imgSrc=IMAGENS[item.setor]||IMAGENS['1'];
+            const isBonus=BONUS.includes(item.setor);
+            const r=item.resultado;
+            const rClass=r==='win'?'win':r==='loss'?'loss':'pendente';
+            const rEmoji=r==='win'?'✅ WIN':r==='loss'?'❌ LOSS':'⏳ PENDENTE';
+            const hsClass=r==='win'?'hs-win':r==='loss'?'hs-loss':'hs-pendente';
+            return `<div class="historico-sinal-item ${rClass}">
+                <div class="hs-sinal">
+                    <div class="hs-mini-logo ${isBonus?'':'numero'}"><img src="${imgSrc}" alt="${item.setor}"></div>
+                    <div><strong>${item.setor}</strong><div style="font-size:0.7em;color:var(--text2);">${item.confianca}%</div></div>
+                </div>
+                <div style="text-align:right;"><span class="hs-resultado ${hsClass}">${rEmoji}</span><div class="hs-hora">${item.hora}</div></div>
+            </div>`;
+        }).join('');
+    }
+
+    function criarEscudo(cor) {
+        return `<svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg"><path d="M10,8 Q50,-2 90,8 L96,30 L96,70 Q96,92 50,110 Q4,92 4,70 L4,30 Z" fill="${cor}" stroke="#ffffff15" stroke-width="1.5"/></svg>`;
+    }
+
+    function criarCelula(dado, nova) {
+        const cel=document.createElement('div'); cel.className='celula'; if(nova) cel.classList.add('nova');
+        const isB=BONUS.includes(dado.tipo);
+        if(isB) {
+            const w=document.createElement('div'); w.className='bonus-wrapper';
+            w.title=`${dado.tipo} | ${dado.multiplicador||1}x`;
+            const img=document.createElement('img'); img.src=IMAGENS[dado.tipo]||IMAGENS['CashHunt'];
+            img.loading='lazy';
+            img.onerror=()=>{ img.style.display='none'; w.textContent=dado.tipo.substring(0,2); w.style.cssText+='display:flex;align-items:center;justify-content:center;color:#ffcc44;font-weight:700;font-size:10px;'; };
+            w.appendChild(img); cel.appendChild(w);
+        } else {
+            const w=document.createElement('div'); w.className='escudo-wrapper';
+            w.innerHTML=criarEscudo(CORES_ESCUDO[dado.tipo]||'#2d4545');
+            w.title=`Número ${dado.tipo} | ${dado.multiplicador||1}x`;
+            const img=document.createElement('img'); img.src=IMAGENS[dado.tipo]||IMAGENS['1'];
+            img.loading='lazy'; img.onerror=()=>{ img.style.display='none'; };
+            w.appendChild(img); cel.appendChild(w);
+        }
+        if(dado.multiplicador&&dado.multiplicador>1) {
+            const tag=document.createElement('div'); tag.className='multiplicador-tag';
+            tag.textContent='x'+dado.multiplicador; cel.appendChild(tag);
+        }
+        return cel;
+    }
+
+    function normalizarDados(apiData) {
+        if(!apiData||!Array.isArray(apiData)) return [];
+        return apiData.map(item=>{
+            const d=item.data, out=d?.result?.outcome, wr=out?.wheelResult;
+            let tipo=wr?.wheelSector||"1", mult=out?.maxMultiplier||null;
+            if(wr?.type==='BonusRound') {
+                const b=wr?.bonus;
+                if(b?.type==='Pachinko') mult=b.bonusMultiplier?.value||mult;
+                else if(b?.type==='CoinFlip') mult=b.result?.multiplier||b.coinBonusMultiplier||mult;
+                else if(b?.type==='CashHunt') mult=out?.cashHuntMaxMultiplier||mult;
+            }
+            return {
+                id: item.id, tipo, numero: tipo, multiplicador: mult,
+                topSlot: out?.topSlot?.wheelSector||null,
+                horario: d?.settledAt?new Date(d.settledAt).toLocaleTimeString('pt-BR'):''
+            };
+        });
+    }
+
+    function atualizarGrade(dados) {
+        const grade=document.getElementById('grade');
+        const cont=document.getElementById('contadorRodadas');
+        if(!grade) return;
+        const lim=dados.slice(0,100); cont.textContent=lim.length;
+        const novosIds=new Set(lim.map(d=>d.id));
+        const realmenteNovos=[]; lim.forEach(d=>{ if(!estado.idsExibidos.has(d.id)) realmenteNovos.push(d.id); });
+        if(estado.primeiraCarga||realmenteNovos.length>10) {
+            grade.innerHTML=''; lim.forEach(d=>grade.appendChild(criarCelula(d,realmenteNovos.includes(d.id))));
+            estado.primeiraCarga=false;
+        } else if(realmenteNovos.length>0) {
+            const itens=lim.filter(d=>realmenteNovos.includes(d.id));
+            itens.forEach(item=>grade.insertBefore(criarCelula(item,true),grade.firstChild));
+            while(grade.children.length>100) grade.removeChild(grade.lastChild);
+        }
+        estado.idsExibidos=novosIds;
+    }
+
+    async function buscarDados() {
+        try {
+            const resp=await fetch(API_URL); if(!resp.ok) return;
+            const dados=await resp.json();
+            const giros=normalizarDados(dados.data||[]);
+            if(!giros.length) return;
+            atualizarGrade(giros);
+            const ultimo=giros[0];
+            if(ultimo.id===estado.ultimoGiroId) return;
+            const anterior=estado.giroAnterior;
+            estado.giroAnterior=ultimo;
+            estado.ultimoGiroId=ultimo.id;
+
+            if(anterior&&estado.sinalAtual) {
+                const res=verificarResultado(estado.sinalAtual, anterior);
+                if(estado.historicoSinais.length) {
+                    const ultSinal=estado.historicoSinais[estado.historicoSinais.length-1];
+                    if(ultSinal.resultado==='pendente') {
+                        ultSinal.resultado=res;
+                        if(res==='win') estado.placar.win++; else estado.placar.loss++;
+                        atualizarPlacar(); atualizarHistoricoSinais();
+                        document.getElementById('sinalCard').className='sinal-card '+(res==='win'?'win':'loss');
+                        document.getElementById('sinalStatus').textContent=res==='win'?'✅ WIN':'❌ LOSS';
+                        document.getElementById('sinalStatus').className='sinal-status '+(res==='win'?'status-win':'status-loss');
+                        if(estado.audioAtivo) res==='win'?tocarWin():tocarLoss();
+                    }
+                }
+                estado.sinalAtual=null;
+            }
+
+            if(!estado.sinalAtual) {
+                const sinal=analisarGiros(giros);
+                if(sinal) {
+                    estado.sinalAtual=sinal;
+                    estado.historicoSinais.push({
+                        setor: sinal.setor, confianca: sinal.confianca,
+                        resultado:'pendente', hora: new Date().toLocaleTimeString('pt-BR')
+                    });
+                    if(estado.historicoSinais.length>100) estado.historicoSinais=estado.historicoSinais.slice(-100);
+                    renderizarSinal(sinal);
+                    atualizarHistoricoSinais();
+                }
+            }
+            document.getElementById('ultimaAtualizacao').textContent=new Date().toLocaleTimeString('pt-BR');
+        } catch(e) { console.error(e); }
+    }
+
+    buscarDados();
+    setInterval(buscarDados, 6000);
+</script>
+</body>
+</html>
